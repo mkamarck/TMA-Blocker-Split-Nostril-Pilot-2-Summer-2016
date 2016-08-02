@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1469559353320.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "AE33AD37",
+    "lastKnownWriteTime" : 43,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "l2b4kpigll",
+        "caption" : "testData.excel.fishy",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=testData.excel.fishy&cache_key=l2b4kpigll",
+        "displayedObservations" : 431,
+        "environment" : "",
+        "object" : "testData.excel.fishy",
+        "totalObservations" : 431,
+        "variables" : 5
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

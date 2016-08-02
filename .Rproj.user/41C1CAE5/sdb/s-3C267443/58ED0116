@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1467920129465.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "58ED0116",
+    "lastKnownWriteTime" : 5994135408972361580,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "2d3d9rto3w",
+        "caption" : "smellTrainingData",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=smellTrainingData&cache_key=2d3d9rto3w",
+        "displayedObservations" : 24,
+        "environment" : "",
+        "object" : "smellTrainingData",
+        "totalObservations" : 24,
+        "variables" : 6
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

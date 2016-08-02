@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1469559745707.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "77F09177",
+    "lastKnownWriteTime" : 8243112767786869280,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "auncsfeqiz",
+        "caption" : "testData.cast",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=testData.cast&cache_key=auncsfeqiz",
+        "displayedObservations" : "12",
+        "environment" : "",
+        "object" : "testData.cast",
+        "totalObservations" : "12",
+        "variables" : "3"
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

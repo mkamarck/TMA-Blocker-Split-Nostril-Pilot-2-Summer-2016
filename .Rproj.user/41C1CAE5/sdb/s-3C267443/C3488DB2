@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1469041086115.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C3488DB2",
+    "lastKnownWriteTime" : 8589869056,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "2c23509khg",
+        "caption" : "testDataBlock1",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=testDataBlock1&cache_key=2c23509khg",
+        "displayedObservations" : 28,
+        "environment" : "",
+        "object" : "testDataBlock1",
+        "totalObservations" : 28,
+        "variables" : 8
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1469562544873.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "999FDB1D",
+    "lastKnownWriteTime" : 4437652480,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "nxpehgzghr",
+        "caption" : "testData.excel",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=testData.excel&cache_key=nxpehgzghr",
+        "displayedObservations" : "431",
+        "environment" : "",
+        "object" : "testData.excel",
+        "totalObservations" : "431",
+        "variables" : "10"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

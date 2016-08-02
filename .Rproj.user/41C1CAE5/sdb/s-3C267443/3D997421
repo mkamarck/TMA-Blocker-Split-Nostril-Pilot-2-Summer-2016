@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1469034095164.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3D997421",
+    "lastKnownWriteTime" : 4783232240353309541,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "bhoqdruy3m",
+        "caption" : "testDataBlock1.melt",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=testDataBlock1.melt&cache_key=bhoqdruy3m",
+        "displayedObservations" : 140,
+        "environment" : "",
+        "object" : "testDataBlock1.melt",
+        "totalObservations" : 140,
+        "variables" : 5
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

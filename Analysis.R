@@ -51,13 +51,13 @@ testDataBlock2.melt <- melt(testDataBlock2, c("Subject", "IntensityRating", "Run
 
 
 #make some graphs - then later make some graphs with normalized data - we want to make sure everything looks good first
-ggplot(data = subset(testDataBlock1.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
-  geom_point(position = position_jitter(w = .1)) +
-  facet_grid(Subject~.)
-
-ggplot(data = subset(testDataBlock2.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
-  geom_point(position = position_jitter(w = .1)) +
-  facet_grid(Subject~.)
+# ggplot(data = subset(testDataBlock1.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
+#   geom_point(position = position_jitter(w = .1)) +
+#   facet_grid(Subject~.)
+# 
+# ggplot(data = subset(testDataBlock2.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
+#   geom_point(position = position_jitter(w = .1)) +
+#   facet_grid(Subject~.)
 
 
 #The other way to relabel so we can see all the points from one person
@@ -73,9 +73,9 @@ ggplot(data = subset(testDataRename, IntensityRating == "FishyRating" & Running.
   geom_boxplot() +
   facet_grid(.~Subject)
 #just the second half of the participants
-ggplot(data = subset(testDataRename, IntensityRating == "FishyRating" & Running.Block. == "Test1" & Subject >=40), aes(x = OdorType, y = value)) +
-  geom_boxplot() +
-  facet_grid(.~Subject)
+# ggplot(data = subset(testDataRename, IntensityRating == "FishyRating" & Running.Block. == "Test1" & Subject >=40), aes(x = OdorType, y = value)) +
+#   geom_boxplot() +
+#   facet_grid(.~Subject)
 
 
 #normalizedData <- ddply(dfSubset, .variables = c("Subject", "Running.Block."), function(x) c(FishyRatingNorm = scale01(x$FishyRating), AntagRatingNorm = scale01(x$AntagRating)))
@@ -101,18 +101,18 @@ testDataMinMax$normValue <- scale01(testDataMinMax$value, testDataMinMax$minValu
 testDataMinMax$Running.Block. <- factor(testDataMinMax$Running.Block., levels = c("Test1", "Test2"), labels = c("Nonenol", "Linalool"))
 testDataMinMax$OdorType <- factor(testDataMinMax$OdorType, levels = c("TMAAlone", "DifferentNostrils", "SameNostril", "Blank", "AntagAlone"))
 
-#graph normalized individuals
-ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating" & Running.Block. == "Nonenol"), aes(x = OdorType, y = normValue)) +
-  geom_point(position = position_jitter(w = .1)) +
-  facet_grid(Subject~.)
-#graph normalized subjects together
-ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating"), aes(x = OdorType, y = normValue)) +
-  geom_point(position = position_jitter(w = .1))+
-  facet_grid(.~Running.Block.)
-#together violin plot
-ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating"), aes(x = OdorType, y = normValue)) +
-  geom_violin() +
-  facet_grid(.~Running.Block.)
+# #graph normalized individuals
+# ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating" & Running.Block. == "Nonenol"), aes(x = OdorType, y = normValue)) +
+#   geom_point(position = position_jitter(w = .1)) +
+#   facet_grid(Subject~.)
+# #graph normalized subjects together
+# ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating"), aes(x = OdorType, y = normValue)) +
+#   geom_point(position = position_jitter(w = .1))+
+#   facet_grid(.~Running.Block.)
+# #together violin plot
+# ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating"), aes(x = OdorType, y = normValue)) +
+#   geom_violin() +
+#   facet_grid(.~Running.Block.)
 #everything together
 ggplot(testDataMinMax, aes(x = OdorType, y = normValue)) +
   geom_violin() +
@@ -203,6 +203,91 @@ ggplot(testDataAverages, aes(x = OdorType, y = average, fill = OdorType)) +
 
 
 #this did nothing, all I did was shift the data and then renormalize it so it looks exactly the same - I am dumb. 
+###########################################
+#unity line plot
+
+ggplot(data = subset(testDataBlock1, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1)
+
+ggplot(data = subset(testDataBlock2, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1)
+  
+
+testDataBlock1.unityline <- ddply(.data = subset(testData.melt, Running.Block. == "Test1"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+testDataBlock2.unityline <- ddply(.data = subset(testData.melt, Running.Block. == "Test2"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Linalool") | (RightType == "Linalool" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Linalool" | LeftType == "TMA+Linalool"))$value)))
+
+ggplot(data = subset(testDataBlock1.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+#the participant who smelled TMA as being stronger tended to rate different nostrils as being stronger than same nostrils and visa versa
+#possibly those who smelled TMA weakly are also mixing it up with green more and are therefore more likely to rate it as being stronger when in the same nostril
+
+###########################################
+#does the data improve if we compare right nostril to right nostril and left nostril to left nostril?
+#start with testDataRename
+right.unityline <- ddply(.data = subset(testDataRename, Running.Block. == "Test1" & RightNostril == 1), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+left.unityline <- ddply(.data = subset(testDataRename, Running.Block. == "Test1" & LeftNostril == 1), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+
+ggplot(data = subset(right.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+#right looks better and the variability is lower
+
+ggplot(data = subset(left.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+
+#boxplot
+ggplot(subset(testDataMinMax, RightNostril == 1), aes(x = OdorType, y = normValue)) +
+  geom_boxplot() +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Normalized Intensity Rating") +
+  ylab("Nostril Type")
+#that looks better
+ggplot(subset(testDataMinMax, LeftNostril == 1), aes(x = OdorType, y = normValue)) +
+  geom_boxplot() +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Normalized Intensity Rating") +
+  ylab("Nostril Type")
+#this does not follow the pattern
+
+#check for ratings of TMA right versus left - is TMA stronger out of one nostril consistently
+TMA.rightVleft <- subset(testDataMinMax, IntensityRating == "FishyRating" & OdorType == "TMAAlone", select = c("Subject", "RightType", "value"))
+TMA.rightVleft_cast <- dcast(TMA.rightVleft, Subject~RightType, fun.aggregate = mean, value.var = "value")
+names(TMA.rightVleft_cast) <- c("Subject", "LeftNostril", "RightNostril") 
+
+ggplot(TMA.rightVleft_cast, aes(x = LeftNostril, y = RightNostril)) +
+  geom_point()+
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_text(aes(label = Subject))
+#not consistently stronger TMA left or right, but those that find TMA the strongest are from the left nostril - this probably means that its not the olfactometer
+#as much as it is which nostril is more open for the participant
+#this data includes TMA alone for both blocks
+
+###########################################
+#does order make a difference? in other words are there any trends for those who got odor block 1 first as opposed to second
+#first I need to make a database of which subject got which block first
+
 ###########################################
 
 #Going to try a new method of normalization

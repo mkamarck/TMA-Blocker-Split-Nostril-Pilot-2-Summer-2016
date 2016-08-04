@@ -1,0 +1,194 @@
+---
+title: "SplitNostril_pilot2_July2016"
+output: html_document
+---
+
+Analysis of the data collected Summer 2016 from MSAP student Sianneh Vesslee. 
+
+
+```{r}
+#clean up data and get things moving
+#Import Libraries
+library(reshape2)
+library(ggplot2)
+library(plyr)
+#read all files from directory
+subj <- dir(path = "/Volumes/mainland/Projects/TMA blocker/Split Nostril Study/Setup2-Olfactometer/Code/SplitNostrilSetup_07_2016/DataPilot2/", pattern="\\.txt$", full.names=TRUE)# creating a list of all file names
+names(subj)  <- basename(subj)
+df  <- ldply(subj, read.delim, stringsAsFactors=FALSE)
+testData <- subset(df, TestMode == "No" & Procedure.SubTrial. == "ExperimentProc" & Subject !=1 & Subject != 2 & Subject !=57, select = c ("Subject", "Running.Block.", "Trial", "IntensityRatingAntag", "IntensityRatingFishy", "RightType", "LeftType"))
+#Subjects 1 and 2 were Sianneh and Yusuke so can't be used, subject 57 somehow only got half of the test (Linalool block) so data was removed
+#580 is zero on the scale and 80 is the highest
+testData$FishyRating  <- 580 - as.integer(testData$IntensityRatingFishy)
+testData$AntagRating  <- 580 - as.integer(testData$IntensityRatingAntag)
+testData.sub <- subset(testData, select = c("Subject", "Running.Block.", "Trial","RightType", "LeftType", "FishyRating", "AntagRating"))
+testData.melt <- melt(testData.sub, c("Subject", "Running.Block.", "Trial","RightType", "LeftType"), factorsAsStrings = FALSE)
+testData.melt$value <- as.double(testData.melt$value)
+testData.melt <- rename(testData.melt, c("variable" = "IntensityRating")) #rename variable
+
+#make dfs with averages
+testDataBlock1 <- ddply(.data = subset(testData.melt, Running.Block. == "Test1"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(AntagAlone = mean(subset(x, (RightType == "Nonenol" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "Nonenol"))$value), TMAAlone = mean(subset(x, (RightType == "TMA" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "TMA"))$value), DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), Blank= (mean(subset(x, (RightType == "Blank" & LeftType == "Blank"))$value))))
+testDataBlock2 <- ddply(.data = subset(testData.melt, Running.Block. == "Test2"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(AntagAlone = mean(subset(x, (RightType == "Linalool" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "Linalool"))$value), TMAAlone = mean(subset(x, (RightType == "TMA" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "TMA"))$value), DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Linalool") | (RightType == "Linalool" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Linalool" | LeftType == "TMA+Linalool"))$value), Blank= (mean(subset(x, (RightType == "Blank" & LeftType == "Blank"))$value))))
+testDataBlock1.melt <- melt(testDataBlock1, c("Subject", "IntensityRating", "Running.Block."))
+testDataBlock2.melt <- melt(testDataBlock2, c("Subject", "IntensityRating", "Running.Block."))
+
+#The other way to relabel so we can see all the points from one person
+nostriltyperelabel <- read.csv("/Volumes/mainland/Projects/TMA\ blocker/Split\ Nostril\ Study/Setup2-Olfactometer/Raw\ Data\ 3-2016/NostrilTypeRelabel.csv") 
+testDataRename <- merge (testData.melt, nostriltyperelabel)
+```
+This is a plot with all the individual data from the block with Nonenol (antagonist trials).
+```{r, echo=FALSE}
+#graph for individuals with all datapoints
+ggplot(data = subset(testDataRename, IntensityRating == "FishyRating" & Running.Block. == "Test1"), aes(x = OdorType, y = value)) +
+  geom_boxplot() +
+  facet_grid(.~Subject)
+```
+
+```{r}
+#NORMALIZE DATA
+#I'm scaling against other odors, we can also try normalizing to the initial scale training
+#scale01 <- function(x){(x-min(x))/(max(x)-min(x))}
+scale01 <- function(value, minValue, maxValue) {
+  (value - minValue)/(maxValue - minValue)
+}
+
+#plan: Find min and max for each participant and then calculate the value using the scale function. 
+#this is normalizing by scale usage during the experiment, rather than overall scale usage during the trial
+#later I can try normalizing by the scale usage from the beginning of the data
+#work with testDataRename
+subjMinMax <- ddply(testDataRename, .variables = c("Subject"), .fun = summarize, minValue = min(value), maxValue = max(value))
+testDataMinMax <- merge(testDataRename, subjMinMax)
+testDataMinMax$normValue <- scale01(testDataMinMax$value, testDataMinMax$minValue, testDataMinMax$maxValue)
+testDataMinMax$Running.Block. <- factor(testDataMinMax$Running.Block., levels = c("Test1", "Test2"), labels = c("Nonenol", "Linalool"))
+testDataMinMax$OdorType <- factor(testDataMinMax$OdorType, levels = c("TMAAlone", "DifferentNostrils", "SameNostril", "Blank", "AntagAlone"))
+```
+
+Plot of everything with normalized data
+```{r, echo = FALSE}
+ggplot(testDataMinMax, aes(x = OdorType, y = normValue)) +
+  geom_boxplot() +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Normalized Intensity Rating") +
+  ylab("Nostril Type")
+```
+This is to match the graph Sianneh made.
+```{r, echo = FALSE}
+testDataAverages <- ddply(testDataMinMax, .variables = c("Running.Block.", "OdorType", "IntensityRating"), .fun = summarize, average = mean(normValue), stdev = sd(normValue), stderror= stdev/sqrt(length(normValue)))
+ggplot(testDataAverages, aes(x = OdorType, y = average, fill = OdorType)) +
+  geom_bar(stat = "identity") +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Nostril Type") +
+  ylab("Normalized Intensity Rating") +
+  geom_errorbar(aes(ymin = average-stderror, ymax = average+stderror), position = "dodge")
+```
+
+Is TMA perceived as equally intense between the nonenol and linalool blocks?
+```{r}
+testDataBlock1 <- ddply(.data = subset(testData.melt, Running.Block. == "Test1"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(AntagAlone = mean(subset(x, (RightType == "Nonenol" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "Nonenol"))$value), TMAAlone = mean(subset(x, (RightType == "TMA" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "TMA"))$value), DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), Blank= (mean(subset(x, (RightType == "Blank" & LeftType == "Blank"))$value))))
+testDataBlock2 <- ddply(.data = subset(testData.melt, Running.Block. == "Test2"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(AntagAlone = mean(subset(x, (RightType == "Linalool" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "Linalool"))$value), TMAAlone = mean(subset(x, (RightType == "TMA" & LeftType == "Blank") | (RightType == "Blank" & LeftType == "TMA"))$value), DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Linalool") | (RightType == "Linalool" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Linalool" | LeftType == "TMA+Linalool"))$value), Blank= (mean(subset(x, (RightType == "Blank" & LeftType == "Blank"))$value))))
+testDataBlockmerge <- rbind(testDataBlock1, testDataBlock2)
+testDataBlock.sub <- subset(testDataBlockmerge, IntensityRating == "FishyRating", select = c("Subject", "Running.Block.", "TMAAlone"))
+
+testData.cast <- dcast(testDataBlock.sub, ...~Running.Block., value.var = "TMAAlone")
+ggplot(testData.cast, aes(x = Test1, y = Test2)) +
+  geom_point()+
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1)
+```
+Generally it looks like subject find TMA to be equally intense between the two blocks. The few outliers might be mixing up the percepts of "green" and "fishy". Future data analysis goal: create standard for distinguishing green from fishy to eliminate subject who are mixing up the two odors.
+
+Next I was interested to see if individuals were following the expected pattern for same nostril smelling less fishy than different nostrils
+Here are unity line plots.  We expect the dots to fall BELOW the unity line.
+```{r}
+ggplot(data = subset(testDataBlock1, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1)
+
+ggplot(data = subset(testDataBlock2, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1)
+```
+There isn't much of a pattern, but I did notice that those that fell below the line seemed to be further from the unity line than those above the line. 
+
+So I added indidivual error bars for the same nostril ratings
+```{r}
+testDataBlock1.unityline <- ddply(.data = subset(testData.melt, Running.Block. == "Test1"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+testDataBlock2.unityline <- ddply(.data = subset(testData.melt, Running.Block. == "Test2"), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Linalool") | (RightType == "Linalool" & LeftType == "TMA"))$value), SameNostril= mean(subset(x, (RightType == "TMA+Linalool" | LeftType == "TMA+Linalool"))$value)))
+
+ggplot(data = subset(testDataBlock1.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,230) +
+  ylim(0,230) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+#the participant who smelled TMA as being stronger tended to rate different nostrils as being stronger than same nostrils and visa versa
+#possibly those who smelled TMA weakly are also mixing it up with green more and are therefore more likely to rate it as being stronger when in the same nostril
+```
+individuals above the line tend to have error bars that are overlapping the line. 
+
+Next I wanted to look at the data by individual nostrils to make sure there were not differences in the olfactometers. Or individual differences in 
+rating odor intensity if its in one nostril versus the other
+
+RIGHT NOSTRIL
+```{r}
+right.unityline <- ddply(.data = subset(testDataRename, Running.Block. == "Test1" & RightNostril == 1), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+left.unityline <- ddply(.data = subset(testDataRename, Running.Block. == "Test1" & LeftNostril == 1), .variables = c("Subject", "IntensityRating", "Running.Block."), function(x) c(DifferentNostrils = mean(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value), DifferentNostrilsSE = sd(subset(x, (RightType == "TMA" & LeftType == "Nonenol") | (RightType == "Nonenol" & LeftType == "TMA"))$value/2), SameNostril= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value), SameNostrilSE= mean(subset(x, (RightType == "TMA+Nonenol" | LeftType == "TMA+Nonenol"))$value/2)))
+
+ggplot(data = subset(right.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+#right looks better and the variability is lower
+
+#boxplot
+ggplot(subset(testDataMinMax, RightNostril == 1), aes(x = OdorType, y = normValue)) +
+  geom_boxplot() +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Normalized Intensity Rating") +
+  ylab("Nostril Type")
+```
+
+LEFT NOSTRIL
+```{r}
+ggplot(data = subset(left.unityline, IntensityRating == "FishyRating"), aes(x = DifferentNostrils, y = SameNostril, colour = Subject)) +
+  geom_point() +
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_errorbar(aes(ymin = SameNostril - SameNostrilSE, ymax = SameNostril + SameNostrilSE)) +
+  geom_text(aes(label = Subject))
+
+ggplot(subset(testDataMinMax, LeftNostril == 1), aes(x = OdorType, y = normValue)) +
+  geom_boxplot() +
+  facet_grid(IntensityRating ~ Running.Block.) +
+  xlab("Normalized Intensity Rating") +
+  ylab("Nostril Type")
+#this does not follow the pattern
+```
+
+Right nostril has much lower variability - why is this? who knows.
+
+Is TMA equally strong between the left and the right nostrils?
+```{r}
+
+TMA.rightVleft <- subset(testDataMinMax, IntensityRating == "FishyRating" & OdorType == "TMAAlone", select = c("Subject", "RightType", "value"))
+TMA.rightVleft_cast <- dcast(TMA.rightVleft, Subject~RightType, fun.aggregate = mean, value.var = "value")
+names(TMA.rightVleft_cast) <- c("Subject", "LeftNostril", "RightNostril") 
+
+ggplot(TMA.rightVleft_cast, aes(x = LeftNostril, y = RightNostril)) +
+  geom_point()+
+  xlim(0,200) +
+  ylim(0,200) +
+  geom_abline(a=1, b=1) +
+  geom_text(aes(label = Subject))
+```
+Pretty much the same.

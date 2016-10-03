@@ -21,7 +21,7 @@ testData <- subset(df, TestMode == "No" & Procedure.SubTrial. == "ExperimentProc
 #get the training data from the scale
 scaleTrainingData <- subset(df, Procedure.Block. == "ScaleTrainingProc", select = c("Subject", "Procedure.Block.", "ScaleTraining", "Question.Trial.", "IntensityRatingTraining.Trial."))
 #get the training data from the smell training (quiz and such)
-smellTrainingQuiz <- subset(df, Procedure.Trial. == "training" | Procedure.Trial. == "Quiz", select = c("Subject", "Procedure.Block.", "IntensityRatingTraining.Trial.", "OdorType", "Procedure.Trial.", "Descriptor", "QuizPage.RESP"))
+smellTrainingQuiz <- subset(df, Procedure.Trial. == "training" | Procedure.Trial. == "Quiz", select = c("Subject", "Procedure.Block.", "IntensityRatingTraining.Trial.", "OdorType", "Procedure.Trial.", "Descriptor", "QuizPage.RESP", "Running.Block."))
 
 
 #convert scales (these scales are on a different scale than the previous scales)
@@ -100,6 +100,8 @@ testDataMinMax$normValue <- scale01(testDataMinMax$value, testDataMinMax$minValu
 
 testDataMinMax$Running.Block. <- factor(testDataMinMax$Running.Block., levels = c("Test1", "Test2"), labels = c("Nonenol", "Linalool"))
 testDataMinMax$OdorType <- factor(testDataMinMax$OdorType, levels = c("TMAAlone", "DifferentNostrils", "SameNostril", "Blank", "AntagAlone"))
+#export this df for Sianneh to learn some R with
+#write.csv(testDataMinMax, "/Volumes/mainland/Users/Sianneh\ Vesslee/R_SplitNostrilData_graph")
 
 # #graph normalized individuals
 # ggplot(data = subset(testDataMinMax, IntensityRating == "FishyRating" & Running.Block. == "Nonenol"), aes(x = OdorType, y = normValue)) +

@@ -51,9 +51,9 @@ testDataBlock2.melt <- melt(testDataBlock2, c("Subject", "IntensityRating", "Run
 
 
 #make some graphs - then later make some graphs with normalized data - we want to make sure everything looks good first
-# ggplot(data = subset(testDataBlock1.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
-#   geom_point(position = position_jitter(w = .1)) +
-#   facet_grid(Subject~.)
+ ggplot(data = subset(testDataBlock1.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
+   geom_point(position = position_jitter(w = .1)) +
+   facet_grid(Subject~.)
 # 
 # ggplot(data = subset(testDataBlock2.melt, IntensityRating %in% "FishyRating"), aes(x = variable, y = value))+
 #   geom_point(position = position_jitter(w = .1)) +
